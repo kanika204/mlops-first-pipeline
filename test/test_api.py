@@ -2,7 +2,7 @@
 from fastapi.testclient import TestClient
 
 # Import the application object defined in main.py
-from models.main import app
+from main import app
 
 # Create a reusable test client for all test functions
 client = TestClient(app)

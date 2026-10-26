@@ -1,0 +1,41 @@
+name: Iris ML API - CI Pipeline - CSE
+# Run the workflow when code is pushed or a pull request is created
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# permissions are restricted to read repo content
+permissions:
+  contents: read
+
+# Define the jobs that make up the pipeline
+jobs:
+    test-and-build:
+        # GitHub repo provides a fresh Ubuntu virtual environment for this job
+        runs-on: ubuntu-latest
+        steps:
+            # Step-1: Download the repo content to the runner
+            - name: Checkout code repository
+              uses: actions/checkout@v4
+            # Step-2: Install Python on the runner
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                python-version: "3.14"
+            # Step-3: Install Python dependencies
+            - name: Install Python dependencies
+              run: python -m pip install --upgrade pip
+
+            # Step-4: Execute the automated tests
+            - name: Run automated tests
+              run: python -m pytest -v
+
+            # Step-5: Build the Docker image
+            - name: Build the Docker image
+              run: docker build -t iris-ml-api:#{{ github.sha }} .
+
+              

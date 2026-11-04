@@ -36,7 +36,11 @@ def test_health_endpoint(client):
     # A successful HTTP response should return status code 200
     assert response.status_code == 200
     # Now check response body
-    assert response.json() == {"status": "healthy"}
+    assert response.json() == {
+        "status": "healthy",
+        "model_name": "iris-classification",
+        "model_version": "test-version"
+    }
 
 def test_valid_iris_prediction(client):
     """

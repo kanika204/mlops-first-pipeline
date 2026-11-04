@@ -1,13 +1,34 @@
 # Import TestClient so we can send simulated HTTP requests directly to FastAPI
 from fastapi.testclient import TestClient
+import pytest
 
 # Import the application object defined in main.py
-from main import app
+from main import create_app
 
 # Create a reusable test client for all test functions
-client = TestClient(app)
+# client = TestClient(app)
 
-def test_health_endpoint():
+# The tests will no longer require a running MLFlow server
+# They test API independently using a fake model and version loader, so they are unit tests rather than integration tests
+class FakeIrisModel:
+    def predict(self, features):
+        return [0]
+
+def fake_model_loader():
+    return FakeIrisModel()
+def fake_version_loader():
+    return "test-version"
+
+@pytest.fixture
+def client():
+    app=create_app(
+        model_loader=fake_model_loader,
+        version_loader=fake_version_loader
+    )
+    with TestClient(app) as test_client:
+        yield test_client
+
+def test_health_endpoint(client):
     """
     Verify that the application is running and can respond to a health-check request
     """
@@ -17,7 +38,7 @@ def test_health_endpoint():
     # Now check response body
     assert response.json() == {"status": "healthy"}
 
-def test_valid_iris_prediction():
+def test_valid_iris_prediction(client):
     """
     Verify that valid flower measurements produce a prediction
     """
@@ -42,7 +63,7 @@ def test_valid_iris_prediction():
     # The predicted integer must be between 0 and 2
     assert result["prediction"] in [0, 1, 2]
 
-def test_invalid_iris_input():
+def test_invalid_iris_input(client):
     """
     Verify that invalid flower measurements are handled correctly
     """
